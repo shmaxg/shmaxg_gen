@@ -1,6 +1,7 @@
 import numpy
 from genetic_algorithm import optimize
 
+# Function to MAXIMIZE
 def objective(x):
     return -numpy.linalg.norm(x)**2
 

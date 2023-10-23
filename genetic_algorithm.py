@@ -19,7 +19,7 @@ def evaluate_solutions(fitness_function: Callable, solutions: numpy.ndarray) -> 
 
     return rewards
 
-def evaluate_solutions_parallel(fitness_function: Callable, solutions: numpy.ndarray, max_workers: int, processORthread: str) -> numpy.ndarray:
+def evaluate_solutions_parallel(fitness_function: Callable, solutions: numpy.ndarray, max_workers: int, process_or_thread: str) -> numpy.ndarray:
 
     results, exec_list = [], []
 
@@ -27,7 +27,7 @@ def evaluate_solutions_parallel(fitness_function: Callable, solutions: numpy.nda
 
     rewards = numpy.zeros((nsolutions,))
 
-    if processORthread == 'process':
+    if process_or_thread == 'process':
 
         with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
 
@@ -37,7 +37,7 @@ def evaluate_solutions_parallel(fitness_function: Callable, solutions: numpy.nda
             for j, f in enumerate(concurrent.futures.as_completed(exec_list)):
                 results.append(f.result())
 
-    elif processORthread == 'thread':
+    elif process_or_thread == 'thread':
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
 
@@ -121,14 +121,22 @@ def optimize(fitness_function: Callable,
              solution_dimension: int,
              mutation_parameter: float,
              mutation_decay_parameter: float,
-             parallel: bool,
-             processORthread: str,
-             max_workers: Optional[int]) -> numpy.ndarray:
+             initial_generation: Optional[numpy.ndarray] = None,
+             parallel: bool = False,
+             process_or_thread: str = 'process',
+             max_workers: Optional[int] = None) -> numpy.ndarray:
 
-    solutions = initialize_solutions(num_solutions, solution_dimension)
+    if initial_generation is not None:
+        if initial_generation.shape[0] != num_solutions:
+            raise Exception('initial_generation.shape[0] should equals num_solutions.')
+        if initial_generation.shape[1] != solution_dimension:
+            raise Exception('initial_generation.shape[1] should equals solution_dimension.')
+        solutions = initial_generation.copy()
+    else:
+        solutions = initialize_solutions(num_solutions, solution_dimension)
 
     if parallel:
-        rewards = evaluate_solutions_parallel(fitness_function, solutions, max_workers, processORthread)
+        rewards = evaluate_solutions_parallel(fitness_function, solutions, max_workers, process_or_thread)
     else:
         rewards = evaluate_solutions(fitness_function, solutions)
 
@@ -139,7 +147,7 @@ def optimize(fitness_function: Callable,
         children_solutions = return_children(solutions, sorted_parent_indexes, mutation_parameter, mutation_decay_parameter, generation, num_solutions, solution_dimension)
 
         if parallel:
-            child_rewards = evaluate_solutions_parallel(fitness_function, children_solutions, max_workers, processORthread)
+            child_rewards = evaluate_solutions_parallel(fitness_function, children_solutions, max_workers, process_or_thread)
         else:
             child_rewards = evaluate_solutions(fitness_function, children_solutions)
 

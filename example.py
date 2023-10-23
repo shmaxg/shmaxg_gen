@@ -15,8 +15,9 @@ if __name__ == '__main__':
                    solution_dimension=10,            # dimension of the solution vector
                    mutation_parameter=0.1,           # x_i += |x_i| * mutation_parameter * (2U-1) * mutation_decay_parameter ** no_generetion
                    mutation_decay_parameter=0.999,
+                   initial_generation=None,
                    parallel=True,
-                   processORthread='process',        # if thread, be careful with shared memory when calculating objective
+                   process_or_thread='process',      # if thread, be careful with shared memory when calculating objective
                    max_workers=8)                    # maximum number of processes or threads to execute objective
 
     print(sol)
